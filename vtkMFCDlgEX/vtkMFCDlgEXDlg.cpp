@@ -67,6 +67,12 @@ BEGIN_MESSAGE_MAP(CvtkMFCDlgEXDlg, CDialogEx)
 	ON_WM_QUERYDRAGICON()
 	ON_WM_SIZE()
 	ON_BN_CLICKED(IDC_BUTTON_CONE, &CvtkMFCDlgEXDlg::OnBnClickedButtonCone)
+	ON_BN_CLICKED(IDC_BUTTON_EX_VTKPOLYDATA, &CvtkMFCDlgEXDlg::OnBnClickedButtonExVtkpolydata)
+	ON_BN_CLICKED(IDC_BUTTON_EX_VTKARROW, &CvtkMFCDlgEXDlg::OnBnClickedButtonExVtkarrow)
+	ON_BN_CLICKED(IDC_BUTTON_EX_VTKSTLREADER, &CvtkMFCDlgEXDlg::OnBnClickedButtonExVtkstlreader)
+	ON_BN_CLICKED(IDC_BUTTON_EX_VTKPROPERTY, &CvtkMFCDlgEXDlg::OnBnClickedButtonExVtkproperty)
+	ON_BN_CLICKED(IDC_BUTTON_EX_VTKCLEANPOLYDATA, &CvtkMFCDlgEXDlg::OnBnClickedButtonExVtkcleanpolydata)
+	ON_BN_CLICKED(IDC_BUTTON_EX_VTKPOLYDATANORMAL, &CvtkMFCDlgEXDlg::OnBnClickedButtonExVtkpolydatanormal)
 END_MESSAGE_MAP()
 
 
@@ -221,6 +227,242 @@ void CvtkMFCDlgEXDlg::OnBnClickedButtonCone()
 	renderer->SetBackground(.1, .2, .3); // Background color dark blue
 	renderer->ResetCamera();
 
+	//카메라 설정
+	vtkSmartPointer<vtkCamera> cam = renderer->GetActiveCamera(); //renderer에서 카메라 받아오기
+	cam->SetClippingRange(0.1, 10);                               //그려질 depth 영역 설정
+	cam->SetFocalPoint(0, 0, 0);								  //카메라가 바라보는 시점
+	cam->SetViewUp(0, 1, 0);									  //카메라의 upvector 설정
+	cam->SetPosition(0, 0, 5);									  //카메라의 위치 설정
+	//cam->ParallelProjectionOn();								  // on: orthogonnval view off: perspective view
+
+	//조명 설정
+	vtkSmartPointer<vtkLight> newLight = vtkSmartPointer<vtkLight>::New();
+	newLight->SetColor(1, 1, 0);								  //조명색 설정(노랑이)
+	newLight->SetFocalPoint(cam->GetFocalPoint());                //비추는 지점
+	newLight->SetPosition(cam->GetPosition());					  //조명 위치 설정
+	renderer->AddLight(newLight);
+
+	//rending
+	m_vtkWindow->AddRenderer(renderer);
+	m_vtkWindow->Render();
+}
+
+void CvtkMFCDlgEXDlg::OnBnClickedButtonExVtkpolydata()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	vtkSmartPointer<vtkPoints> pPoints = vtkSmartPointer<vtkPoints>::New();
+	pPoints->InsertPoint(0, 0.0, 0.0, 0.0);
+	pPoints->InsertPoint(1, 0.0, 1.0, 0.0);
+	pPoints->InsertPoint(2, 1.0, 0.0, 0.0);
+	pPoints->InsertPoint(3, 1.0, 1.0, 0.0);
+
+	vtkSmartPointer<vtkCellArray> pPolys = vtkSmartPointer<vtkCellArray>::New();
+	pPolys->InsertNextCell(3);
+	pPolys->InsertCellPoint(0);
+	pPolys->InsertCellPoint(1);
+	pPolys->InsertCellPoint(2);
+	pPolys->InsertNextCell(3);
+	pPolys->InsertCellPoint(1);
+	pPolys->InsertCellPoint(3);
+	pPolys->InsertCellPoint(2);
+
+	vtkSmartPointer<vtkPolyData> pPolyData = vtkSmartPointer<vtkPolyData>::New();
+	pPolyData->SetPoints(pPoints);   //위치 정보
+	pPolyData->SetPolys(pPolys);     //형태 정보
+
+	//Create a mapper and actor
+	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	mapper->SetInputData(pPolyData);
+	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	actor->SetMapper(mapper);
+
+	/////////////////////////////////////////////////////////////////////////////
+	// Visualize
+	vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
+	renderer->AddActor(actor);
+	renderer->SetBackground(.1, .2, .3); // Background color dark blue
+	renderer->ResetCamera();
+	//rending
+	m_vtkWindow->AddRenderer(renderer);
+	m_vtkWindow->Render();
+
+}
+
+void CvtkMFCDlgEXDlg::OnBnClickedButtonExVtkarrow()
+{
+	vtkSmartPointer<vtkArrowSource> pArrow = vtkSmartPointer<vtkArrowSource>::New();
+	pArrow->SetShaftRadius(0.03);		//파라미터 설정(Option)
+	pArrow->SetShaftResolution(100);
+	pArrow->SetTipRadius(0.1);
+	pArrow->SetTipLength(0.35);
+	pArrow->SetTipResolution(100);
+	pArrow->Update();
+
+	vtkSmartPointer<vtkPolyData> pPolyData = pArrow->GetOutput();  //vtkPolyData 받아오기
+
+	//Create a mapper and actor
+	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	mapper->SetInputData(pPolyData);
+	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	actor->SetMapper(mapper);
+
+	/////////////////////////////////////////////////////////////////////////////
+	// Visualize
+	vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
+	renderer->AddActor(actor);
+	renderer->SetBackground(.1, .2, .3); // Background color dark blue
+	renderer->ResetCamera();
+	//rending
+	m_vtkWindow->AddRenderer(renderer);
+	m_vtkWindow->Render();
+}
+
+
+void CvtkMFCDlgEXDlg::OnBnClickedButtonExVtkstlreader()
+{
+	vtkSmartPointer<vtkSTLReader> pSTL_Reader = vtkSmartPointer<vtkSTLReader>::New();
+	pSTL_Reader->SetFileName("./data/example.stl");		//읽을 파일 지정
+	pSTL_Reader->Update();
+
+	vtkSmartPointer<vtkPolyData> pPolyData = pSTL_Reader->GetOutput();	//vtkPolyData 형식으로 받아오기
+	
+	vtkSmartPointer<vtkSTLWriter> pSTLWriter = vtkSmartPointer<vtkSTLWriter>::New();
+	pSTLWriter->SetInputData(pPolyData);			//저장할 vtkPolyData
+	pSTLWriter->SetFileName("./data/example1.stl");
+	pSTLWriter->Write();							//저장하기
+
+	//Create a mapper and actor
+	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	mapper->SetInputData(pPolyData);
+	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	actor->SetMapper(mapper);
+
+	/////////////////////////////////////////////////////////////////////////////
+	// Visualize
+	vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
+	renderer->AddActor(actor);
+	renderer->SetBackground(.1, .2, .3); // Background color dark blue
+	renderer->ResetCamera();
+	//rending
+	m_vtkWindow->AddRenderer(renderer);
+	m_vtkWindow->Render();
+}
+
+void CvtkMFCDlgEXDlg::OnBnClickedButtonExVtkproperty()
+{
+	vtkSmartPointer<vtkArrowSource> arrow = vtkSmartPointer<vtkArrowSource>::New();
+
+	//Create a mapper and actor
+	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	mapper->SetInputConnection(arrow->GetOutputPort());
+	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	actor->SetMapper(mapper);
+
+	actor->GetProperty()->SetColor(0, 1, 0);	//색상설정
+	actor->GetProperty()->SetOpacity(0.5);      //불투명도 설정 0.0:투명 ~ 1.0:불투명
+	actor->GetProperty()->SetPointSize(1.0);    //Vertex 사이즈 설정
+	actor->GetProperty()->SetLineWidth(1.0);	//Line 두께 설정
+
+	//VTK_POINTS, VTK_WIREFRAME, VTK_SURFACE
+	actor->GetProperty()->SetRepresentation(VTK_SURFACE);  //그리기 방법설정
+	//actor->GetProperty()->SetTexture(pTexture); //vtkTexture(Texture Mapping)
+	actor->GetProperty()->BackfaceCullingOn();  //Culling ON/OFF
+	actor->GetProperty()->LightingOn();			//Lighting ON/OFF
+	actor->GetProperty()->ShadingOn();			//Shading ON/OFF
+
+	/////////////////////////////////////////////////////////////////////////////
+	// Visualize
+	vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
+	renderer->AddActor(actor);
+	renderer->SetBackground(.1, .2, .3); // Background color dark blue
+	renderer->ResetCamera();
+	//rending
+	m_vtkWindow->AddRenderer(renderer);
+	m_vtkWindow->Render();
+}
+
+
+void CvtkMFCDlgEXDlg::OnBnClickedButtonExVtkcleanpolydata()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	vtkSmartPointer<vtkPoints> pPoints = vtkSmartPointer<vtkPoints>::New();
+	pPoints->InsertPoint(0, 0.0, 0.0, 0.0);
+	pPoints->InsertPoint(1, 0.0, 1.0, 0.0);
+	pPoints->InsertPoint(2, 1.0, 0.0, 0.0);
+	pPoints->InsertPoint(3, 1.0, 1.0, 0.0);
+	pPoints->InsertPoint(4, 0.0, 1.0, 0.0);		//1번점과 중복
+	pPoints->InsertPoint(5, 1.0, 0.0, 0.0);     //2번점과 중복
+
+	vtkSmartPointer<vtkCellArray> pPolys = vtkSmartPointer<vtkCellArray>::New();
+	pPolys->InsertNextCell(3);
+	pPolys->InsertCellPoint(0);
+	pPolys->InsertCellPoint(1);
+	pPolys->InsertCellPoint(2);
+	pPolys->InsertNextCell(3);	
+	pPolys->InsertCellPoint(4);
+	pPolys->InsertCellPoint(3);
+	pPolys->InsertCellPoint(5);
+
+	vtkSmartPointer<vtkPolyData> pPolyData = vtkSmartPointer<vtkPolyData>::New();
+	pPolyData->SetPoints(pPoints);   //위치 정보
+	pPolyData->SetPolys(pPolys);     //형태 정보
+
+	int nPt = pPolyData->GetNumberOfPoints();   //nPt = 6;
+	int nPoly = pPolyData->GetNumberOfPolys();  //nPoly = 2;
+
+	vtkSmartPointer<vtkCleanPolyData> pClean = vtkSmartPointer<vtkCleanPolyData>::New();
+	pClean->SetInputData(pPolyData);
+	pClean->Update();
+
+	pPolyData->DeepCopy(pClean->GetOutput());  //vtkPolyData 복사하기
+	nPt = pPolyData->GetNumberOfPoints();      //nPt = 4;
+	nPoly = pPolyData->GetNumberOfPolys();     //nPoly = 2;
+
+	//Create a mapper and actor
+	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	mapper->SetInputData(pPolyData);
+	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	actor->SetMapper(mapper);
+
+	/////////////////////////////////////////////////////////////////////////////
+	// Visualize
+	vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
+	renderer->AddActor(actor);
+	renderer->SetBackground(.1, .2, .3); // Background color dark blue
+	renderer->ResetCamera();
+	//rending
+	m_vtkWindow->AddRenderer(renderer);
+	m_vtkWindow->Render();
+}
+
+
+void CvtkMFCDlgEXDlg::OnBnClickedButtonExVtkpolydatanormal()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	vtkSmartPointer<vtkSTLReader> pSTL_Reader = vtkSmartPointer<vtkSTLReader>::New();
+	pSTL_Reader->SetFileName("./data/example.stl");		//읽을 파일 지정
+	pSTL_Reader->Update();
+
+	vtkSmartPointer<vtkPolyData> pPolyData = pSTL_Reader->GetOutput();	//vtkPolyData 형식으로 받아오기
+
+	vtkSmartPointer<vtkPolyDataNormals> normals = vtkSmartPointer<vtkPolyDataNormals>::New();
+	normals->SetInputData(pSTL_Reader->GetOutput());			//저장할 vtkPolyData
+	normals->ComputePointNormalsOn();						    //Point normal 계산 			
+	normals->ComputeCellNormalsOn();                            //Cell normal 계산
+	normals->Update();	
+
+	//Create a mapper and actor
+	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	mapper->SetInputConnection(normals->GetOutputPort());
+	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	actor->SetMapper(mapper);
+
+	/////////////////////////////////////////////////////////////////////////////
+	// Visualize
+	vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
+	renderer->AddActor(actor);
+	renderer->SetBackground(.1, .2, .3); // Background color dark blue
+	renderer->ResetCamera();
 	//rending
 	m_vtkWindow->AddRenderer(renderer);
 	m_vtkWindow->Render();

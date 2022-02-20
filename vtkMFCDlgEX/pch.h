@@ -33,5 +33,19 @@
 #include <vtkCaptionWidget.h>
 #include <vtkOrientationMarkerWidget.h>
 #include <vtkTextWidget.h>
+#include <vtkCamera.h>
+#include <vtkLight.h>
+
+#include <vtkPoints.h>
+#include <vtkCellArray.h>
+#include <vtkPolyData.h>
+#include <vtkArrowSource.h>
+
+#include <vtkSTLReader.h>
+#include <vtkSTLWriter.h >
+#include <vtkProperty.h>
+
+#include <vtkCleanPolyData.h>
+#include <vtkPolyDataNormals.h>
 
 #endif //PCH_H
