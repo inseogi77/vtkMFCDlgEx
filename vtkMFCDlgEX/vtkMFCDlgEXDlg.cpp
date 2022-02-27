@@ -74,6 +74,7 @@ BEGIN_MESSAGE_MAP(CvtkMFCDlgEXDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_EX_VTKCLEANPOLYDATA, &CvtkMFCDlgEXDlg::OnBnClickedButtonExVtkcleanpolydata)
 	ON_BN_CLICKED(IDC_BUTTON_EX_VTKPOLYDATANORMAL, &CvtkMFCDlgEXDlg::OnBnClickedButtonExVtkpolydatanormal)
 	ON_BN_CLICKED(IDC_BUTTON_EX_VTKEXDECIMATION, &CvtkMFCDlgEXDlg::OnBnClickedButtonExVtkexdecimation)
+	ON_BN_CLICKED(IDC_BUTTON_EX_VTKSMOOTHING, &CvtkMFCDlgEXDlg::OnBnClickedButtonExVtksmoothing)
 END_MESSAGE_MAP()
 
 
@@ -508,4 +509,40 @@ void CvtkMFCDlgEXDlg::OnBnClickedButtonExVtkexdecimation()
 	//rending
 	m_vtkWindow->AddRenderer(renderer);
 	m_vtkWindow->Render();
+}
+
+
+void CvtkMFCDlgEXDlg::OnBnClickedButtonExVtksmoothing()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	vtkSmartPointer<vtkSTLReader> pSTL_Reader = vtkSmartPointer<vtkSTLReader>::New();
+	pSTL_Reader->SetFileName("./data/example.stl");		//읽을 파일 지정
+	pSTL_Reader->Update();
+
+	//////////////////////////////////////////////////////////
+	//Filter 처리 vtkPolyDdata(dental.stl)->
+	//smoothing
+	vtkSmartPointer<vtkWindowedSincPolyDataFilter> smoothFilter = vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
+	smoothFilter->SetInputConnection(pSTL_Reader->GetOutputPort());
+	smoothFilter->SetNumberOfIterations(100);  //반복연산 횟수
+	smoothFilter->Update();
+
+	//Create a mapper and actor
+	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	mapper->SetInputConnection(smoothFilter->GetOutputPort());
+
+	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	actor->SetMapper(mapper);
+
+	//////////////////////////////////////////////////////////////////////////////
+	//Visualize
+	vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
+	renderer->AddActor(actor);
+	renderer->SetBackground(.1, .2, .3);
+	renderer->ResetCamera();
+
+	//rendering
+	m_vtkWindow->AddRenderer(renderer);
+	m_vtkWindow->Render();
+
 }

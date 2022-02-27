@@ -51,4 +51,6 @@
 #include <vtkDecimatePro.h>
 #include <vtkQuadricClustering.h>
 
+#include <vtkWindowedSincPolyDataFilter.h>
+
 #endif //PCH_H
