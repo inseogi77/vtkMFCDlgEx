@@ -46,4 +46,5 @@ public:
 	afx_msg void OnBnClickedButtonExVtkproperty();
 	afx_msg void OnBnClickedButtonExVtkcleanpolydata();
 	afx_msg void OnBnClickedButtonExVtkpolydatanormal();
+	afx_msg void OnBnClickedButtonExVtkexdecimation();
 };

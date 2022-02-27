@@ -48,4 +48,7 @@
 #include <vtkCleanPolyData.h>
 #include <vtkPolyDataNormals.h>
 
+#include <vtkDecimatePro.h>
+#include <vtkQuadricClustering.h>
+
 #endif //PCH_H

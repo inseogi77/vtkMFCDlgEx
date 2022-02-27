@@ -73,6 +73,7 @@ BEGIN_MESSAGE_MAP(CvtkMFCDlgEXDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_EX_VTKPROPERTY, &CvtkMFCDlgEXDlg::OnBnClickedButtonExVtkproperty)
 	ON_BN_CLICKED(IDC_BUTTON_EX_VTKCLEANPOLYDATA, &CvtkMFCDlgEXDlg::OnBnClickedButtonExVtkcleanpolydata)
 	ON_BN_CLICKED(IDC_BUTTON_EX_VTKPOLYDATANORMAL, &CvtkMFCDlgEXDlg::OnBnClickedButtonExVtkpolydatanormal)
+	ON_BN_CLICKED(IDC_BUTTON_EX_VTKEXDECIMATION, &CvtkMFCDlgEXDlg::OnBnClickedButtonExVtkexdecimation)
 END_MESSAGE_MAP()
 
 
@@ -454,6 +455,47 @@ void CvtkMFCDlgEXDlg::OnBnClickedButtonExVtkpolydatanormal()
 	//Create a mapper and actor
 	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	mapper->SetInputConnection(normals->GetOutputPort());
+	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	actor->SetMapper(mapper);
+
+	/////////////////////////////////////////////////////////////////////////////
+	// Visualize
+	vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
+	renderer->AddActor(actor);
+	renderer->SetBackground(.1, .2, .3); // Background color dark blue
+	renderer->ResetCamera();
+	//rending
+	m_vtkWindow->AddRenderer(renderer);
+	m_vtkWindow->Render();
+}
+
+
+void CvtkMFCDlgEXDlg::OnBnClickedButtonExVtkexdecimation()
+{
+	vtkSmartPointer<vtkSTLReader> pSTL_Reader = vtkSmartPointer<vtkSTLReader>::New();
+	pSTL_Reader->SetFileName("./data/example.stl");		//읽을 파일 지정
+	pSTL_Reader->Update();
+
+	//Filter처리 vtkPolyData(dental.stf) ->
+	//1) vtkDecimationPro
+	vtkSmartPointer<vtkDecimatePro> decimatePro = vtkSmartPointer<vtkDecimatePro>::New();
+	decimatePro->SetInputConnection(pSTL_Reader->GetOutputPort());
+	decimatePro->SetTargetReduction(0.9); //전체 mesh 10% 감소
+	decimatePro->PreserveTopologyOn();
+	decimatePro->Update();
+
+	//2) vtkQuadricClustering
+	vtkSmartPointer<vtkQuadricClustering> qClustering = vtkSmartPointer<vtkQuadricClustering>::New();
+	qClustering->SetInputConnection(pSTL_Reader->GetOutputPort());
+	qClustering->SetNumberOfDivisions(10, 10, 10); //분할 개수 설정 (생략 가능)
+	qClustering->Update();
+
+	//Create a mapper and actor
+	vtkSmartPointer< vtkPolyDataMapper> mapper = vtkSmartPointer <vtkPolyDataMapper>::New();
+
+	//두가지 결과 중 하나를 선택하여 랜더링
+	//mapper->SetInputConnection(decimatePro->GetOutputPort());
+	mapper->SetInputConnection(qClustering->GetOutputPort());
 	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
 	actor->SetMapper(mapper);
 
