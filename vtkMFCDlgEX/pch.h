@@ -52,5 +52,9 @@
 #include <vtkQuadricClustering.h>
 
 #include <vtkWindowedSincPolyDataFilter.h>
+#include <vtkPolyDataConnectivityFilter.h>
+
+#include <vtkPlane.h>
+#include <vtkClipPolyData.h>
 
 #endif //PCH_H

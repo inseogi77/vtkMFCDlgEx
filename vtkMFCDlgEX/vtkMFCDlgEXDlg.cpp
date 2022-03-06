@@ -75,6 +75,9 @@ BEGIN_MESSAGE_MAP(CvtkMFCDlgEXDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_EX_VTKPOLYDATANORMAL, &CvtkMFCDlgEXDlg::OnBnClickedButtonExVtkpolydatanormal)
 	ON_BN_CLICKED(IDC_BUTTON_EX_VTKEXDECIMATION, &CvtkMFCDlgEXDlg::OnBnClickedButtonExVtkexdecimation)
 	ON_BN_CLICKED(IDC_BUTTON_EX_VTKSMOOTHING, &CvtkMFCDlgEXDlg::OnBnClickedButtonExVtksmoothing)
+	ON_BN_CLICKED(IDC_BUTTON_EX_VTKCONNECTIVITY_CHECK, &CvtkMFCDlgEXDlg::OnBnClickedButtonExVtkconnectivityCheck)
+	ON_BN_CLICKED(IDC_BUTTON_EX_VTKCLIPPING, &CvtkMFCDlgEXDlg::OnBnClickedButtonExVtkclipping)
+	ON_BN_CLICKED(IDC_BUTTON_EX_VTKTRANSFORM, &CvtkMFCDlgEXDlg::OnBnClickedButtonExVtktransform)
 END_MESSAGE_MAP()
 
 
@@ -545,4 +548,106 @@ void CvtkMFCDlgEXDlg::OnBnClickedButtonExVtksmoothing()
 	m_vtkWindow->AddRenderer(renderer);
 	m_vtkWindow->Render();
 
+}
+
+void CvtkMFCDlgEXDlg::OnBnClickedButtonExVtkconnectivityCheck()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
+	stlReader->SetFileName("./data/example.stl");
+	stlReader->Update();
+
+	////////////////////////////////////////////////////////////////////////////////
+	//Filter 처리 vtkPolyData
+	vtkSmartPointer<vtkPolyDataConnectivityFilter> conFilter = vtkSmartPointer<vtkPolyDataConnectivityFilter>::New();
+	conFilter->SetInputConnection(stlReader->GetOutputPort());
+
+	//1) 모든 영역 추출
+	conFilter->SetExtractionModeToAllRegions();
+
+	//2) 가장 큰 영역 추출
+	conFilter->SetExtractionModeToLargestRegion();
+
+	//3) seed로 연결된 영역 추출
+	//conFilter->AddSeed(id);
+	//conFilter->SetExtractionModeToCellSeededRegions();  // 3-1) 특정 cell seed
+	//conFilter->SetExtractionModeToPointSeededRegions(); // 3-2) 특정 point seed
+
+	//4) 특정 point와 가까운 점과 연결된 영역 추출
+	//conFilter->SetClosestPoint(x,y,z);
+	//conFilter->SetExtractionModeToClosestPointRegion();
+
+	conFilter->Update();
+
+	//Create mapper and actor
+	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	mapper->SetInputConnection(conFilter->GetOutputPort());
+
+	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	actor->SetMapper(mapper);
+
+	///////////////////////////////////////////////////////////////////////////////////////////
+	//Visualize
+	vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
+	renderer->AddActor(actor);
+	renderer->SetBackground(.1, .2, .3);
+	renderer->ResetCamera();
+
+	//rendering
+	m_vtkWindow->AddRenderer(renderer);
+	m_vtkWindow->Render();
+
+	//1초 기다림
+	Sleep(1000);
+
+	//2)가장 큰 영역 추출
+	conFilter->SetExtractionModeToLargestRegion();
+	conFilter->Update();
+	m_vtkWindow->Render();
+}
+
+
+void CvtkMFCDlgEXDlg::OnBnClickedButtonExVtkclipping()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	//STL 파일 읽기 오기
+	vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
+	stlReader->SetFileName("./data/example.stl");
+	stlReader->Update();
+
+	/////////////////////////////////////////////////////////////////////////
+	//Filter 처리 vtkPolyData
+	double center[3];
+	stlReader->GetOutput()->GetCenter(center);							//mesh data 중심
+
+	vtkSmartPointer<vtkPlane> plane = vtkSmartPointer<vtkPlane>::New(); //clipping plane 생성
+	plane->SetOrigin(center);											//원점설정
+	plane->SetNormal(1.0, 0.0, 0.0);									//normal vector 설정
+
+	vtkSmartPointer<vtkClipPolyData> clipper = vtkSmartPointer<vtkClipPolyData>::New();
+	clipper->SetInputConnection(stlReader->GetOutputPort());			//clip 대상 mesh 설정
+	clipper->SetClipFunction(plane);
+	clipper->Update();
+
+	//Create a mapper and actor
+	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	mapper->SetInputConnection(clipper->GetOutputPort());
+	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	actor->SetMapper(mapper);
+
+	//////////////////////////////////////////////////////////////////////////////////
+	//Visualize
+	vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
+	renderer->AddActor(actor);
+	renderer->SetBackground(.1, .2, .3);
+	renderer->ResetCamera();
+
+	//rendering
+	m_vtkWindow->AddRenderer(renderer);
+	m_vtkWindow->Render();
+}
+
+void CvtkMFCDlgEXDlg::OnBnClickedButtonExVtktransform()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 }
